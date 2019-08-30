@@ -1,4 +1,5 @@
 name: native_page_view_controller_example
+version: 0.1.0+1
 description: Demonstrates how to use the native_page_view_controller plugin.
 publish_to: 'none'
 

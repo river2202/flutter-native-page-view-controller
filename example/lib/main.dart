@@ -4,7 +4,27 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:native_page_view_controller/native_page_view_controller.dart';
 
-void main() => runApp(MyApp());
+import 'FlutterPageView.dart';
+import 'dart:ui';
+
+void main() => runApp(_widgetForRoute(window.defaultRouteName));
+
+_GetSimplyPageView(int index) => MaterialApp(
+        home: SimplyPageView(index, (context) => NativePageViewController.close()));
+
+Widget _widgetForRoute(String route) {
+  print(route);
+  switch (route) {
+    case 'page1':
+      return _GetSimplyPageView(1);
+    case 'page2':
+      return _GetSimplyPageView(2);
+    case 'page3':
+      return _GetSimplyPageView(3);
+    default:
+      return MyApp();
+  }
+}
 
 class MyApp extends StatefulWidget {
   @override
@@ -12,6 +32,9 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  // final MethodChannel _methodChannel =
+  //     MethodChannel('samples.flutter.io/platform_view');
+
   String _platformVersion = 'Unknown';
 
   @override
@@ -40,17 +63,56 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  Future<void> _launchNativePageView() async {
+    // await _methodChannel.invokeMethod('switchView');
+    NativePageViewController.show("Page", 2);
+    setState(() {});
+  }
+
+  void _launchFlutterPageView(BuildContext context) {
+    Navigator.push(context, new MaterialPageRoute(builder: (context) {
+      return FlutterPageView();
+    }));
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Plugin example app'),
-        ),
-        body: Center(
-          child: Text('Running on: $_platformVersion\n'),
-        ),
-      ),
-    );
+        home: Scaffold(
+            appBar: AppBar(
+              title: const Text('Plugin example app'),
+            ),
+            body: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Expanded(
+                    child: Center(
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: <Widget>[
+                          Text('Running on: $_platformVersion\n'),
+                          Padding(
+                            padding: const EdgeInsets.all(18.0),
+                            child:  Builder(builder: (context) => 
+                            RaisedButton(
+                                child: const Text('Flutter PageView'),
+                                onPressed: () {
+                                  _launchFlutterPageView(context);
+                                  Navigator.push(context,
+                                      new MaterialPageRoute(builder: (context) {
+                                    return FlutterPageView();
+                                  }));
+                                })),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(18.0),
+                            child: RaisedButton(
+                                child: Text('Native PageViewController'),
+                                onPressed: _launchNativePageView),
+                          ),
+                        ])),
+                  )
+                ])));
+  
   }
 }
