@@ -3,21 +3,34 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 
 class NativePageViewController {
+  static const String pageRouteName = "flutter_page_route";
+  static const String channelName = "native_page_view_controller";
+
   static const MethodChannel _channel =
-      const MethodChannel('native_page_view_controller');
+      const MethodChannel(channelName);
 
-  static Future<String> get platformVersion async {
-    final String version = await _channel.invokeMethod('getPlatformVersion');
-    return version;
+  static void show(int pageCount) async {
+    await _channel.invokeMethod('show', [pageCount, pageRouteName]);
   }
 
-  static Future<String> show(String pageRouterName, int pageCount) async {
-    final String result = await _channel.invokeMethod('show');
-    return result;
+  static void hide() async {
+    await _channel.invokeMethod('hide');
   }
 
-  static void close() async {
-    await _channel.invokeMethod('close');
-  }
+  static int getPageIndex(String routeString) {
 
+    var match = RegExp(pageRouteName + r"(?:\?(\d+))?").matchAsPrefix(routeString);
+
+    if (null != match) {
+      if (match.groupCount>0) {
+        try {
+          return int.parse(match.group(1));
+        } catch (e) {
+          return 0;
+        }
+      }
+    }
+
+    return null;
+  }
 }

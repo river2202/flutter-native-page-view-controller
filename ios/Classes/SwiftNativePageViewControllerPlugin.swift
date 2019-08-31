@@ -2,8 +2,15 @@ import Flutter
 import UIKit
 
 public class SwiftNativePageViewControllerPlugin: NSObject, FlutterPlugin {
+    
+    enum PluginError {
+        case general
+    }
+    
+    static let channelName = "native_page_view_controller"
+    
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let channel = FlutterMethodChannel(name: "native_page_view_controller", binaryMessenger: registrar.messenger())
+        let channel = FlutterMethodChannel(name: channelName, binaryMessenger: registrar.messenger())
         let instance = SwiftNativePageViewControllerPlugin()
         registrar.addMethodCallDelegate(instance, channel: channel)
     }
@@ -14,25 +21,37 @@ public class SwiftNativePageViewControllerPlugin: NSObject, FlutterPlugin {
         
         switch call.method {
         case "show":
-            SwiftNativePageViewControllerPlugin.show(create())
-            result("iOS " + UIDevice.current.systemVersion)
-        case "close":
+            if let arguments = call.arguments as? [AnyObject],
+                arguments.count >= 2,
+                let pageNumber = arguments[0] as? Int,
+                let pageRouterName = arguments[1] as? String {
+                
+                SwiftNativePageViewControllerPlugin.show(
+                    create(pageNumber: pageNumber, pageRouterName: pageRouterName)
+                )
+                
+            } else {
+                handleError()
+            }
+            
+            result(nil)
+        case "hide":
             controllers.removeAll()
             SwiftNativePageViewControllerPlugin.hide()
-            result("iOS " + UIDevice.current.systemVersion)
+            result(nil)
         default:
-            result("iOS " + UIDevice.current.systemVersion)
+            result(nil)
         }
     }
     
-    private func create() -> UIPageViewController {
+    private func create(pageNumber: Int, pageRouterName: String) -> UIPageViewController {
         let pageController = UIPageViewController(transitionStyle: .pageCurl, navigationOrientation: .horizontal, options: nil)
         pageController.dataSource = self
         pageController.delegate = self
         
         controllers.removeAll()
-        controllers = [1,2,3].map { i in
-            return createFlutterPageView(index: i)
+        controllers = Array(0..<pageNumber).map { i in
+            return createFlutterPageView(index: i, pageRouterName: pageRouterName)
         }
         
         pageController.setViewControllers([controllers[0]], direction: .forward, animated: false)
@@ -40,42 +59,18 @@ public class SwiftNativePageViewControllerPlugin: NSObject, FlutterPlugin {
         return pageController
     }
     
-    private func createFlutterPageView(index: Int) -> UIViewController {
+    private func createFlutterPageView(index: Int, pageRouterName: String) -> UIViewController {
         let flutterPageView = FlutterViewController()
-        flutterPageView.setInitialRoute("page\(index)")
+        flutterPageView.setInitialRoute("\(pageRouterName)?\(index)")
         
-        let pageChannel = FlutterMethodChannel(name: "native_page_view_controller", binaryMessenger: flutterPageView)
+        let pageChannel = FlutterMethodChannel(name: SwiftNativePageViewControllerPlugin.channelName, binaryMessenger: flutterPageView)
         pageChannel.setMethodCallHandler(handle)
 
         return flutterPageView
     }
-
-    private func createPageViewController(index: Int) -> UIViewController {
-        let vc = UIViewController()
-        vc.view.backgroundColor = randomColor()
-
-        let labeView = UILabel(frame: vc.view.frame)
-        labeView.numberOfLines = 0
-        labeView.text = """
-        Page \(index)
-
-        UIPageViewController pageCurl demo
-
-        Navigate between views via a page curl transition.
-        """
-        vc.view.addSubview(labeView)
-
-        let closeButton = UIButton(frame: CGRect(x: 10, y: 100, width: 50, height: 50))
-        closeButton.setTitle("Close", for: .normal)
-        closeButton.addTarget(self, action: #selector(tapClose), for: .touchUpInside)
-
-        vc.view.addSubview(closeButton)
-
-        return vc
-    }
-
-    @objc func tapClose(sender: UIButton!) {
-        SwiftNativePageViewControllerPlugin.hide()
+    
+    private func handleError(error: PluginError = .general) {
+        
     }
 }
 
@@ -131,16 +126,6 @@ extension SwiftNativePageViewControllerPlugin: UIPageViewControllerDataSource, U
         }
         
         return nil
-    }
-}
-
-extension SwiftNativePageViewControllerPlugin {
-    func randomCGFloat() -> CGFloat {
-        return CGFloat(arc4random()) / CGFloat(UInt32.max)
-    }
-    
-    func randomColor() -> UIColor {
-        return UIColor(red: randomCGFloat(), green: randomCGFloat(), blue: randomCGFloat(), alpha: 1)
     }
 }
 

@@ -1,12 +1,10 @@
-# native_page_view_controller
+# Flutter Native PageViewController plugin
 
-A flutter plugin to use native ui to achieve page curl effect.
+A Flutter plugin to use native ui to achieve page curl effect.
 
 ![ScreenShot](Flutter-native-page-curl.gif)
 
-## Getting Started
-
-### The challenge
+## The challenge
 
 Flutter PageView widget does't support page curl transition. Neither OpenGL ES. Similar transition effect as native page curl is not likely achievable using pure Flutter/Dart at the moment.
 
@@ -20,9 +18,9 @@ https://flutter.dev/docs/development/platform-integration/platform-channels
 4. Plugin Packages
 https://flutter.dev/docs/development/packages-and-plugins/developing-packages#developing-plugin-packages
 
-Since the challenge is to use a native controller/activity and the transition effect, we still want to keep the sigle page view as Flutter widget to avoid re-create all the login in native world, we have to combine above solutions. 
+The challenge is to implement the page curl effect using native ui controls, we still want to keep the sigle page view as Flutter widget.
 
-### Sulotion Overview
+## Sulotion Overview
 
 1. Flutter main app (route /) use platform channel to call native codes. 
 2. Native code create UIPageViewController (or Android  equivalent) with FlutterViewControllers/FlutterFragment arrays for each page in new Flutter/Dart ioslation.
