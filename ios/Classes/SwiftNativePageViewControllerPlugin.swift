@@ -7,6 +7,30 @@ public class SwiftNativePageViewControllerPlugin: NSObject, FlutterPlugin {
         case general
     }
     
+    struct Parameters {
+        let pageNumber: Int
+        let pageRouterName: String
+        let disableNativeTap: Bool
+        
+        static func parse(arguments: Any?) -> Parameters? {
+            if let arguments = arguments as? [Any],
+                arguments.count >= 2,
+                let pageNumber = arguments[0] as? Int,
+                let pageRouterName = arguments[1] as? String {
+                
+                let disableNativeTap = (arguments[2] as? Bool) ?? false
+                
+                return Parameters(
+                    pageNumber: pageNumber,
+                    pageRouterName: pageRouterName,
+                    disableNativeTap: disableNativeTap
+                )
+            }
+            
+            return nil
+        }
+    }
+    
     static let channelName = "native_page_view_controller"
     
     public static func register(with registrar: FlutterPluginRegistrar) {
@@ -21,13 +45,10 @@ public class SwiftNativePageViewControllerPlugin: NSObject, FlutterPlugin {
         
         switch call.method {
         case "show":
-            if let arguments = call.arguments as? [AnyObject],
-                arguments.count >= 2,
-                let pageNumber = arguments[0] as? Int,
-                let pageRouterName = arguments[1] as? String {
+            if let parameters = Parameters.parse(arguments: call.arguments) {
                 
                 SwiftNativePageViewControllerPlugin.show(
-                    create(pageNumber: pageNumber, pageRouterName: pageRouterName)
+                    create(with: parameters)
                 )
                 
             } else {
@@ -36,22 +57,23 @@ public class SwiftNativePageViewControllerPlugin: NSObject, FlutterPlugin {
             
             result(nil)
         case "hide":
-            controllers.removeAll()
             SwiftNativePageViewControllerPlugin.hide()
+            controllers.removeAll()
             result(nil)
         default:
             result(nil)
         }
     }
     
-    private func create(pageNumber: Int, pageRouterName: String) -> UIPageViewController {
+    private func create(with parameters: Parameters) -> UIPageViewController {
         let pageController = UIPageViewController(transitionStyle: .pageCurl, navigationOrientation: .horizontal, options: nil)
         pageController.dataSource = self
         pageController.delegate = self
+        pageController.eanbleTapRecognizer(!parameters.disableNativeTap)
         
         controllers.removeAll()
-        controllers = Array(0..<pageNumber).map { i in
-            return createFlutterPageView(index: i, pageRouterName: pageRouterName)
+        controllers = Array(0..<parameters.pageNumber).map { i in
+            return createFlutterPageView(index: i, pageRouterName: parameters.pageRouterName)
         }
         
         pageController.setViewControllers([controllers[0]], direction: .forward, animated: false)
@@ -129,3 +151,14 @@ extension SwiftNativePageViewControllerPlugin: UIPageViewControllerDataSource, U
     }
 }
 
+extension UIPageViewController {
+    func eanbleTapRecognizer(_ enable: Bool) {
+        let gestureRecognizers = self.gestureRecognizers
+        
+        gestureRecognizers.forEach { recognizer in
+            if recognizer.isKind(of: UITapGestureRecognizer.self) {
+                recognizer.isEnabled = enable
+            }
+        }
+    }
+}

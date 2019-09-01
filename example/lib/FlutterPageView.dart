@@ -38,7 +38,9 @@ class SimplyPageView extends StatelessWidget {
       appBar: AppBar(title: Text('Flutter page $index')),
       body: Center(child: Text("Page $index")),
       floatingActionButton: FloatingActionButton(
-          onPressed: () => close(context),
+          onPressed: () {
+            close(context);
+          },
           tooltip: 'close',
           child: const Icon(Icons.close),
         ),

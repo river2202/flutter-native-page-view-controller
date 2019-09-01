@@ -9,8 +9,8 @@ class NativePageViewController {
   static const MethodChannel _channel =
       const MethodChannel(channelName);
 
-  static void show(int pageCount) async {
-    await _channel.invokeMethod('show', [pageCount, pageRouteName]);
+  static void show(int pageCount, {bool disableNativeTap = true}) async {
+    await _channel.invokeMethod('show', [pageCount, pageRouteName, disableNativeTap]);
   }
 
   static void hide() async {
