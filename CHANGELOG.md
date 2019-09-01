@@ -1,3 +1,3 @@
 ## 0.0.1
 
-* TODO: Describe initial release.
+- Use iOS native UIPageViewController to achieve page curl effect.
