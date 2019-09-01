@@ -18,8 +18,8 @@ void main() {
   });
 
   test('show 2 pages', () async {
-    NativePageViewController.show(2);
-    expect(methodCallString, 'MethodCall(show, [2, flutter_page_route])');
+    NativePageViewController.show(2, (pageIndex) { return "Page content $pageIndex"; } );
+    expect(methodCallString, 'MethodCall(show, [2, flutter_page_route, true])');
   });
 
   test('hide', () async {

@@ -1,20 +1,40 @@
 import 'dart:async';
-
 import 'package:flutter/services.dart';
+
+typedef ContentLoader<T> = T Function(int pageIndex);
 
 class NativePageViewController {
   static const String pageRouteName = "flutter_page_route";
   static const String channelName = "native_page_view_controller";
 
-  static const MethodChannel _channel =
-      const MethodChannel(channelName);
+  static ContentLoader contentLoader;
 
-  static void show(int pageCount, {bool disableNativeTap = true}) async {
+  static MethodChannel _buildChannel() {
+    MethodChannel channel = MethodChannel(channelName);
+    channel.setMethodCallHandler((MethodCall call) async {
+      switch (call.method) {
+        case 'load':
+          return contentLoader(call.arguments);
+        default:
+          throw MissingPluginException();
+      }
+    });
+    return channel;
+  }
+
+  static MethodChannel _channel = _buildChannel();
+
+  static void show(int pageCount, ContentLoader loader, {bool disableNativeTap = true}) async {
+    contentLoader = loader;
     await _channel.invokeMethod('show', [pageCount, pageRouteName, disableNativeTap]);
   }
 
   static void hide() async {
     await _channel.invokeMethod('hide');
+  }
+
+  static Future<T> load<T>(int pageIndex) async {
+    return _channel.invokeMethod<T>('load', pageIndex);
   }
 
   static int getPageIndex(String routeString) {

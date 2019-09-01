@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 typedef CloseCallback = void Function(BuildContext);
+typedef LoadContent<T> = Future<T> Function(int);
 
 class FlutterPageView extends StatelessWidget {
 
@@ -8,12 +9,16 @@ class FlutterPageView extends StatelessWidget {
     Navigator.popUntil(context, ModalRoute.withName('/'));
   }
 
+  Future<String> _loadContent(int pageIndex) async {
+    return "Page Content $pageIndex";
+  }
+
   @override
   Widget build(BuildContext context) {
     return PageView(
       children: <Widget>[
-        SimplyPageView(0, _close),
-        SimplyPageView(1, _close),
+        SimplyPageView(0, _close, _loadContent),
+        SimplyPageView(1, _close, _loadContent),
         Container(
           color: Colors.deepPurple,
         ),
@@ -25,21 +30,43 @@ class FlutterPageView extends StatelessWidget {
   }
 }
 
-class SimplyPageView extends StatelessWidget {
+class SimplyPageView extends StatefulWidget {
 
   final CloseCallback close;
+  final LoadContent<String> load;
   final int index;
 
-  SimplyPageView(this.index, this.close);
+  SimplyPageView(this.index, this.close, this.load);
+
+  @override
+  _SimplyPageViewState createState() => _SimplyPageViewState();
+}
+
+class _SimplyPageViewState extends State<SimplyPageView> {
+
+  String _pageContent;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageContent = "Loading ...";
+
+    widget.load(widget.index).then((content) {
+      print("Page${widget.index} Loaded!");
+      _pageContent = content;
+      setState(() {});
+    });
+
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Flutter page $index')),
-      body: Center(child: Text("Page $index")),
+      appBar: AppBar(title: Text('Flutter page ${widget.index}')),
+      body: Center(child: Text(_pageContent)),
       floatingActionButton: FloatingActionButton(
           onPressed: () {
-            close(context);
+            widget.close(context);
           },
           tooltip: 'close',
           child: const Icon(Icons.close),

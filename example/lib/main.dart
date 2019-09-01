@@ -10,7 +10,7 @@ import 'dart:ui';
 void main() => runApp(_widgetForRoute(window.defaultRouteName));
 
 Widget _getSimplyPageView(int index) => MaterialApp (
-        home: SimplyPageView(index, (context) => NativePageViewController.hide()));
+        home: SimplyPageView(index, (context) => NativePageViewController.hide(), NativePageViewController.load));
 
 Widget _widgetForRoute(String routeString) {
   int pageIndex = NativePageViewController.getPageIndex(routeString);
@@ -37,7 +37,9 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _launchNativePageView() async {
-    NativePageViewController.show(5);
+    NativePageViewController.show(5, (pageIndex) {
+      return "Page Content --- $pageIndex";
+    });
     setState(() {});
   }
 

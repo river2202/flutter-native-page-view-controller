@@ -3,6 +3,8 @@ import UIKit
 
 public class SwiftNativePageViewControllerPlugin: NSObject, FlutterPlugin {
     
+    static let channelName = "native_page_view_controller"
+    
     enum PluginError {
         case general
     }
@@ -31,38 +33,60 @@ public class SwiftNativePageViewControllerPlugin: NSObject, FlutterPlugin {
         }
     }
     
-    static let channelName = "native_page_view_controller"
-    
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let channel = FlutterMethodChannel(name: channelName, binaryMessenger: registrar.messenger())
-        let instance = SwiftNativePageViewControllerPlugin()
-        registrar.addMethodCallDelegate(instance, channel: channel)
+        let instance = SwiftNativePageViewControllerPlugin(flutterAppMessenger: registrar.messenger())
+        registrar.addMethodCallDelegate(instance, channel: instance.flutterAppChannel)
     }
     
+    let flutterAppChannel: FlutterMethodChannel
     var controllers = [UIViewController]()
+    
+    public init(flutterAppMessenger: FlutterBinaryMessenger) {
+         flutterAppChannel = FlutterMethodChannel(name: SwiftNativePageViewControllerPlugin.channelName, binaryMessenger: flutterAppMessenger)
+    }
     
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         
         switch call.method {
+            
         case "show":
             if let parameters = Parameters.parse(arguments: call.arguments) {
-                
                 SwiftNativePageViewControllerPlugin.show(
                     create(with: parameters)
                 )
-                
             } else {
                 handleError()
             }
+            result(nil)
             
-            result(nil)
         case "hide":
-            SwiftNativePageViewControllerPlugin.hide()
-            controllers.removeAll()
+            hide()
             result(nil)
+            
         default:
             result(nil)
         }
+    }
+    
+    func handlePageMessage(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        
+        switch call.method {
+            
+        case "hide":
+            hide()
+            result(nil)
+            
+        case "load":
+            flutterAppChannel.invokeMethod("load", arguments: call.arguments, result: result)
+            
+        default:
+            result(nil)
+        }
+    }
+    
+    private func hide() {
+        SwiftNativePageViewControllerPlugin.hide()
+        controllers.removeAll()
     }
     
     private func create(with parameters: Parameters) -> UIPageViewController {
@@ -86,7 +110,7 @@ public class SwiftNativePageViewControllerPlugin: NSObject, FlutterPlugin {
         flutterPageView.setInitialRoute("\(pageRouterName)?\(index)")
         
         let pageChannel = FlutterMethodChannel(name: SwiftNativePageViewControllerPlugin.channelName, binaryMessenger: flutterPageView)
-        pageChannel.setMethodCallHandler(handle)
+        pageChannel.setMethodCallHandler(handlePageMessage)
 
         return flutterPageView
     }
