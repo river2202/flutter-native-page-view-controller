@@ -3,6 +3,15 @@ import UIKit
 
 public class SwiftNativePageViewControllerPlugin: NSObject, FlutterPlugin {
     
+    enum TransitionStyle: Int {
+        case none
+        case slideUp
+        
+        static func parse(_ value: Any) -> TransitionStyle {
+            return .none
+        }
+    }
+    
     static let channelName = "native_page_view_controller"
     
     enum PluginError {
@@ -10,9 +19,11 @@ public class SwiftNativePageViewControllerPlugin: NSObject, FlutterPlugin {
     }
     
     struct Parameters {
+        
         let pageNumber: Int
         let pageRouterName: String
         let disableNativeTap: Bool
+        let transitionStyle: TransitionStyle
         
         static func parse(arguments: Any?) -> Parameters? {
             if let arguments = arguments as? [Any],
@@ -20,12 +31,14 @@ public class SwiftNativePageViewControllerPlugin: NSObject, FlutterPlugin {
                 let pageNumber = arguments[0] as? Int,
                 let pageRouterName = arguments[1] as? String {
                 
-                let disableNativeTap = (arguments[2] as? Bool) ?? false
+                let transitionStyle = TransitionStyle.parse(arguments[2])
+                let disableNativeTap = (arguments[3] as? Bool) ?? false
                 
                 return Parameters(
                     pageNumber: pageNumber,
                     pageRouterName: pageRouterName,
-                    disableNativeTap: disableNativeTap
+                    disableNativeTap: disableNativeTap,
+                    transitionStyle: transitionStyle
                 )
             }
             
@@ -132,14 +145,20 @@ extension SwiftNativePageViewControllerPlugin {
         return window
     }()
     
-    public static func show(_ viewController: UIViewController) {
+    private static func show(_ viewController: UIViewController, transitionStyle: TransitionStyle = .none) {
         if toolWindowLayer.isHidden {
             toolWindowLayer.makeKeyAndVisible()
-            toolWindowLayer.rootViewController?.present(viewController, animated: true, completion: nil)
+            
+            switch transitionStyle {
+            case .none:
+                toolWindowLayer.rootViewController?.present(viewController, animated: false, completion: nil)
+            case .slideUp:
+                toolWindowLayer.rootViewController?.present(viewController, animated: true, completion: nil)
+            }
         }
     }
     
-    public static func hide() {
+    private static func hide() {
         toolWindowLayer.rootViewController?.dismiss(animated: true) {
             toolWindowLayer.isHidden = true
         }

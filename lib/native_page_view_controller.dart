@@ -3,6 +3,11 @@ import 'package:flutter/services.dart';
 
 typedef ContentLoader<T> = T Function(int pageIndex);
 
+enum NativePageViewControllerTransitionStyle {
+  none,
+  slideUp,
+}
+
 class NativePageViewController {
   static const String pageRouteName = "flutter_page_route";
   static const String channelName = "native_page_view_controller";
@@ -24,9 +29,15 @@ class NativePageViewController {
 
   static MethodChannel _channel = _buildChannel();
 
-  static void show(int pageCount, ContentLoader loader, {bool disableNativeTap = true}) async {
+  static void show(
+      int pageCount,
+      ContentLoader loader,
+      {
+        NativePageViewControllerTransitionStyle transitionStyle = NativePageViewControllerTransitionStyle.none,
+        bool disableNativeTap = true
+      }) async {
     contentLoader = loader;
-    await _channel.invokeMethod('show', [pageCount, pageRouteName, disableNativeTap]);
+    await _channel.invokeMethod('show', [pageCount, pageRouteName, transitionStyle.index, disableNativeTap]);
   }
 
   static void hide() async {

@@ -1,3 +1,7 @@
+## 0.0.3
+
+- Add TransitionStyle, only has two value though
+
 ## 0.0.2
 
 - Add swift version
