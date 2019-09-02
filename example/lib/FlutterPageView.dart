@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:native_page_view_controller/native_page_view_controller.dart';
 
 typedef CloseCallback = void Function(BuildContext);
 typedef LoadContent<T> = Future<T> Function(int);
@@ -31,6 +32,11 @@ class FlutterPageView extends StatelessWidget {
 }
 
 class SimplyPageView extends StatefulWidget {
+
+static Widget builder(int index, ContentLoader contentLoader, NativeCallback close, NativeCallback next, NativeCallback previous) {
+  return MaterialApp (
+        home: SimplyPageView(index, (context) => NativePageViewController.hide(), NativePageViewController.load));
+}
 
   final CloseCallback close;
   final LoadContent<String> load;

@@ -1,26 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:flutter/services.dart';
 import 'package:native_page_view_controller/native_page_view_controller.dart';
 
 import 'FlutterPageView.dart';
-import 'dart:ui';
 
-void main() => runApp(_widgetForRoute(window.defaultRouteName));
-
-Widget _getSimplyPageView(int index) => MaterialApp (
-        home: SimplyPageView(index, (context) => NativePageViewController.hide(), NativePageViewController.load));
-
-Widget _widgetForRoute(String routeString) {
-  int pageIndex = NativePageViewController.getPageIndex(routeString);
-
-  if (null != pageIndex) {
-    return _getSimplyPageView(pageIndex);
-  } else {
-    return MyApp();
-  }
-}
+void main() => runApp(NativePageViewController.getInitialWidget(SimplyPageView.builder) ?? MyApp());
 
 class MyApp extends StatefulWidget {
   @override
@@ -29,7 +14,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
 
-  String _platformVersion = 'Unknown';
+  String _platformVersion = 'Hello world!';
 
   @override
   void initState() {
@@ -39,7 +24,7 @@ class _MyAppState extends State<MyApp> {
   Future<void> _launchNativePageView() async {
     NativePageViewController.show(5, (pageIndex) {
       return "Page Content --- $pageIndex";
-    });
+    }, pageRect: Rect.fromLTWH(50, 50, 200, 400));
     setState(() {});
   }
 

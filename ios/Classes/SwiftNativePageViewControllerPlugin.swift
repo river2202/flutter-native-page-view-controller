@@ -24,25 +24,47 @@ public class SwiftNativePageViewControllerPlugin: NSObject, FlutterPlugin {
         let pageRouterName: String
         let disableNativeTap: Bool
         let transitionStyle: TransitionStyle
+        let pageRect: CGRect?
         
         static func parse(arguments: Any?) -> Parameters? {
-            if let arguments = arguments as? [Any],
+            guard let arguments = arguments as? [Any],
                 arguments.count >= 2,
                 let pageNumber = arguments[0] as? Int,
-                let pageRouterName = arguments[1] as? String {
+                let pageRouterName = arguments[1] as? String else {
+                    return nil
+            }
                 
-                let transitionStyle = TransitionStyle.parse(arguments[2])
-                let disableNativeTap = (arguments[3] as? Bool) ?? false
-                
-                return Parameters(
-                    pageNumber: pageNumber,
-                    pageRouterName: pageRouterName,
-                    disableNativeTap: disableNativeTap,
-                    transitionStyle: transitionStyle
-                )
+            let transitionStyle = TransitionStyle.parse(arguments[2])
+            let disableNativeTap = (arguments[3] as? Bool) ?? false
+            
+            func getValue<T>(_ index: Int) -> T? {
+                guard index >= 0 && index < arguments.count else {
+                    return nil
+                }
+                return arguments[index] as? T
             }
             
-            return nil
+            func getValue<T>(_ index: Int, defaultValue: T) -> T {
+                return getValue(index) ?? defaultValue
+            }
+            
+            let pageRect: CGRect?
+            if let x: Int = getValue(4), let y: Int = getValue(5),
+                let w: Int = getValue(6), let h: Int = getValue(7),
+                w > 0, h > 0 {
+                pageRect = CGRect(x: x, y: y, width: w, height: h)
+            } else {
+                pageRect = nil
+            }
+            
+            
+            return Parameters(
+                pageNumber: pageNumber,
+                pageRouterName: pageRouterName,
+                disableNativeTap: disableNativeTap,
+                transitionStyle: transitionStyle,
+                pageRect: pageRect
+            )
         }
     }
     
@@ -102,11 +124,33 @@ public class SwiftNativePageViewControllerPlugin: NSObject, FlutterPlugin {
         controllers.removeAll()
     }
     
-    private func create(with parameters: Parameters) -> UIPageViewController {
+    class PagesViewController: UIViewController {
+        let pageController: UIPageViewController
+        
+        init(pageController: UIPageViewController) {
+            self.pageController = pageController
+            super.init(nibName: nil, bundle: nil)
+        }
+        
+        required init?(coder aDecoder: NSCoder) {
+            fatalError("init(coder:) has not been implemented")
+        }
+        
+        override func viewDidLoad() {
+            addChildViewController(pageController)
+            view.addSubview(pageController.view)
+        }
+    }
+    
+    private func create(with parameters: Parameters) -> UIViewController {
         let pageController = UIPageViewController(transitionStyle: .pageCurl, navigationOrientation: .horizontal, options: nil)
         pageController.dataSource = self
         pageController.delegate = self
         pageController.eanbleTapRecognizer(!parameters.disableNativeTap)
+        
+        if let frameRect = parameters.pageRect {
+            pageController.view.frame = frameRect
+        }
         
         controllers.removeAll()
         controllers = Array(0..<parameters.pageNumber).map { i in
@@ -115,7 +159,7 @@ public class SwiftNativePageViewControllerPlugin: NSObject, FlutterPlugin {
         
         pageController.setViewControllers([controllers[0]], direction: .forward, animated: false)
         
-        return pageController
+        return PagesViewController(pageController: pageController)
     }
     
     private func createFlutterPageView(index: Int, pageRouterName: String) -> UIViewController {
@@ -205,3 +249,4 @@ extension UIPageViewController {
         }
     }
 }
+
