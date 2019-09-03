@@ -1,3 +1,7 @@
+## 0.0.5
+
+- Fix page area issue
+
 ## 0.0.4
 
 - Add support for showing native page views in any area of screen, not limited to full screen

@@ -42,7 +42,7 @@ class NativePageViewController {
         Rect pageRect
       }) async {
     contentLoader = loader;
-    await _channel.invokeMethod('show', [pageCount, pageRouteName, transitionStyle.index, disableNativeTap, pageRect?.left, pageRect?.right, pageRect?.width, pageRect?.height]);
+    await _channel.invokeMethod('show', [pageCount, pageRouteName, transitionStyle.index, disableNativeTap, pageRect?.left, pageRect?.top, pageRect?.width, pageRect?.height]);
   }
 
   static void hide() async {

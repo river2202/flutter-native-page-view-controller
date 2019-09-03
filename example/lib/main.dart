@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'dart:async';
 
@@ -24,7 +26,7 @@ class _MyAppState extends State<MyApp> {
   Future<void> _launchNativePageView() async {
     NativePageViewController.show(5, (pageIndex) {
       return "Page Content --- $pageIndex";
-    }, pageRect: Rect.fromLTWH(50, 50, 200, 400));
+    }, pageRect: _MyAppState.getPageRect());
     setState(() {});
   }
 
@@ -73,5 +75,45 @@ class _MyAppState extends State<MyApp> {
                   )
                 ])));
   
+  }
+
+
+  static Size getScreenSize() {
+    final Size size = window.physicalSize;
+    final devicePixelRatio = window.devicePixelRatio;
+    final double screenWidth = size.width / devicePixelRatio;
+    final double screenHeight = size.height / devicePixelRatio;
+
+    return Size(screenWidth, screenHeight);
+  }
+
+
+  static Size getTargetSize() {
+    final Size screenSize = getScreenSize();
+    final double targetRatio = 2048.0 / 2836.0;
+
+    if (screenSize.aspectRatio < targetRatio) {
+      return Size(screenSize.width, screenSize.height*targetRatio);
+    } else {
+      return Size(screenSize.width/targetRatio, screenSize.height);
+    }
+  }
+
+  static Rect getPageRect() {
+    final Size screenSize = getScreenSize();
+    final Size targetSize = getTargetSize();
+
+    print("screenSize=$screenSize, targetSize=$targetSize");
+    final rect = Rect.fromLTWH(
+        (screenSize.width - targetSize.width)/2,
+        (screenSize.height - targetSize.height)/2,
+        targetSize.width,
+        targetSize.height
+    );
+
+    print("pageRect=$rect");
+
+    return rect;
+
   }
 }

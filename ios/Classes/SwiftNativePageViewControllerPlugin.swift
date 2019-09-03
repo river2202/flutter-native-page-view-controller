@@ -49,8 +49,8 @@ public class SwiftNativePageViewControllerPlugin: NSObject, FlutterPlugin {
             }
             
             let pageRect: CGRect?
-            if let x: Int = getValue(4), let y: Int = getValue(5),
-                let w: Int = getValue(6), let h: Int = getValue(7),
+            if let x: Double = getValue(4), let y: Double = getValue(5),
+                let w: Double = getValue(6), let h: Double = getValue(7),
                 w > 0, h > 0 {
                 pageRect = CGRect(x: x, y: y, width: w, height: h)
             } else {
